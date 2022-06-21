@@ -27,9 +27,3 @@ constexpr Matrix toGrid{
    0.0f , 0.0f,                                        1.0f, 0.0f,
    0.0f , 0.0f,                                        0.0f, 1.0f
 };
-
-// tile hovered over in last frame. -1 => no hover
-constinit int lastHovered{-1};
-
-// tile rise on mouse over
-constexpr int tileRise{-10};

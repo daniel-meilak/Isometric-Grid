@@ -5,10 +5,9 @@
 #include"raylib.h"
 #include"raymath.h"
 
-// scale, gridWidth/height, windowSize, transformation matrices
 #include"constants.h"
+#include"grid.h"
 #include"textures.h"
-#include"mouse_hover.h"
 #include"wave.h"
 
 // forward function declarations
@@ -20,28 +19,12 @@ int main(){
 
    SetTargetFPS(60);
 
-   // create texture storage
-   TextureStorage textureStore;
+   // initialize grid
+   Grid grid(gridWidth,gridHeight);
 
    // create and add tile, button texture
-   Texture2D tileTexture = LoadTexture("sprites/tile.png");
    Texture2D buttonTexture = LoadTexture("sprites/button.png");
-   textureStore.add(tileTexture);
    textureStore.add(buttonTexture);
-
-   // tile rectangle for display
-   Rectangle tile_source{0.0f, 0.0f, static_cast<float>(tileTexture.width), static_cast<float>(tileTexture.height)};
-   std::vector<Rectangle> tiles(gridWidth*gridHeight);
-
-   // set grid positions
-   for (int j=0; j<gridHeight; j++){
-      for (int i=0; i<gridWidth; i++){
-         tiles[i + (j*gridWidth)] = {static_cast<float>(i)*scale,static_cast<float>(j)*scale,scale,scale};
-      }
-   }
-
-   // transform grid to isometric
-   for (auto& tile : tiles){ transform(tile); }
 
    // game loop
    while (!WindowShouldClose()){
@@ -54,7 +37,7 @@ int main(){
       Vector2 mousePos = GetMousePosition();
 
       // check for and animate mouse hover over tile
-      mouseHover(tiles,mousePos);
+      grid.mouseHover(mousePos);
 
       // wave parameters
       if (button_on){
@@ -72,14 +55,11 @@ int main(){
       DrawText(TextFormat("Wave length:   %01.04f", wave_length), 0,75,20, BLACK);
       DrawText(TextFormat("Wave Speed:   %i", wave_speed), 0,100,20, BLACK);
 
-
-      // draw grid
-      for (const auto& tile : tiles){
-         DrawTexturePro(tileTexture, tile_source, {tile.x, tile.y + waveOffset(tile), tile.width, tile.height}, {}, 0.0f, WHITE);
-      }
+      // draw grid to screen
+      grid.draw();
 
       // draw button
-      waveButton(tiles, mousePos, buttonTexture);
+      waveButton(grid.tiles, mousePos, buttonTexture);
       
       EndDrawing();
    }
@@ -89,12 +69,4 @@ int main(){
    CloseWindow();
 
    return 0;
-}
-
-void transform(Rectangle& tile){
-
-   Vector3 new_pos = Vector3Transform({tile.x, tile.y, 1}, toIso);
-
-   tile.x = new_pos.x;
-   tile.y = new_pos.y;
 }

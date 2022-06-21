@@ -16,7 +16,7 @@ struct TextureStorage{
       for (auto& texture : textures){ UnloadTexture(*texture); }
    }
 
-
 private:
    std::vector<Texture2D*> textures;
-};
+
+} textureStore;
