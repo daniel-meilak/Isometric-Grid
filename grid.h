@@ -22,9 +22,18 @@ struct Grid{
    int lastHovered{-1};
    int tileRise{-10};
 
+   // wave properties
+   bool waveState{false};
+   int amplitude{0};
+   int speed{5};
+   float wavelength{0.01};
+   float dt{0};
+
    Grid(int width, int height);
 
    void mouseHover(const Vector2& mousePos);
+   float waveOffset(const Rectangle& tile);
+   void getInput();
    void draw();
 };
 
@@ -46,6 +55,9 @@ Grid::Grid(int width, int height): width(width), height(height){
 
 void Grid::mouseHover(const Vector2& mousePos){
 
+   // turn off mouse hover during wave state
+   if (waveState){ return; }
+
    // undo last hover
    if (lastHovered>=0){ tiles[lastHovered].y -= tileRise; }
 
@@ -62,8 +74,6 @@ void Grid::mouseHover(const Vector2& mousePos){
    else {lastHovered = -1;}
 
    // debug info
-   // DrawText(TextFormat("Mouse Actual Pos: %04.00f, %04.00f", mousePos.x, mousePos.y), 0,0,20, BLACK);
-   // DrawText(TextFormat("Mouse Isomet Pos: %04.00f, %04.00f", onGrid.x, onGrid.y), 0,25,20, BLACK);
    DrawText(TextFormat("Mouse Coord:   %i, %i", static_cast<int>(onGrid.x/scale), (static_cast<int>(onGrid.y/scale))), 0,0,20, BLACK);
    DrawText(TextFormat("Index:   %i", lastHovered), 0,25,20, BLACK);
 }
@@ -73,4 +83,32 @@ void Grid::draw(){
    for (const auto& tile : tiles){
       DrawTexturePro(texture, source, {tile.x, tile.y+waveOffset(tile), tile.width, tile.height}, {}, 0.0f, WHITE);
    }
+
+   // wave state info
+   if (waveState){
+      DrawText(TextFormat("Wave Amplitude:   %i", amplitude), 0,0,20, BLACK);
+      DrawText(TextFormat("Wave length:   %01.04f", wavelength), 0,25,20, BLACK);
+      DrawText(TextFormat("Wave Speed:   %i", speed), 0,50,20, BLACK);
+   }
 }
+
+void Grid::getInput(){
+   
+   if (waveState){
+      if (IsKeyDown(KEY_UP    )){ amplitude++;          }
+      if (IsKeyDown(KEY_DOWN  )){ amplitude--;          }
+      if (IsKeyDown(KEY_LEFT  )){ wavelength += 0.00001;}
+      if (IsKeyDown(KEY_RIGHT )){ wavelength -= 0.00001;}
+      if (IsKeyDown(KEY_SPACE )){ dt += speed;          }
+
+      if (IsKeyPressed(KEY_PERIOD)){ speed++;     }
+      if (IsKeyPressed(KEY_COMMA )){ speed--;     }      
+   }
+}
+
+float Grid::waveOffset(const Rectangle& tile){
+
+   return waveState ? amplitude*std::sin((dt + tile.x + tile.y)*wavelength) : 0;
+
+}
+
