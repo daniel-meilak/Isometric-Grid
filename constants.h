@@ -6,8 +6,8 @@ constexpr int tileSize{32};
 constexpr int scale = scaling*tileSize;
 
 // Grid size
-constexpr int gridWidth  = 12;
-constexpr int gridHeight = 12;
+constexpr int gridWidth  = 9;
+constexpr int gridHeight = 9;
 
 // window variables
 constexpr std::array<int,2> windowSize = {2 * scale*gridWidth, 2 * scale*gridHeight/2 };
