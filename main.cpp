@@ -10,10 +10,6 @@
 #include"wave.h"
 #include"grid.h"
 
-
-// forward function declarations
-void transform(Rectangle& tile);
-
 int main(){
 
    InitWindow(windowSize[0], windowSize[1], "Isometric Grid");
