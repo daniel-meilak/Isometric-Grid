@@ -7,7 +7,7 @@
 
 #include"constants.h"
 #include"textures.h"
-#include"wave.h"
+#include"button.h"
 #include"grid.h"
 
 int main(){

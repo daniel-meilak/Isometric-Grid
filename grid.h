@@ -7,16 +7,16 @@
 
 #include"constants.h"
 #include"textures.h"
-#include"wave.h"
+#include"button.h"
 
 struct Grid{
+
+   Texture2D& texture;
+   Rectangle source{};
 
    int width;
    int height;
 
-   Texture2D texture{LoadTexture("sprites/tile.png")};
-   Rectangle source{0.0f, 0.0f, static_cast<float>(texture.width), static_cast<float>(texture.height)};
-   
    std::vector<Rectangle> tiles;
 
    int lastHovered{-1};
@@ -24,10 +24,15 @@ struct Grid{
 
    // wave properties
    bool waveState{false};
-   int amplitude{0};
+   int amplitude{50};
    int speed{5};
    float wavelength{0.01};
    float dt{0};
+
+   // transition into/out of wave
+   int transitioning{0}; // turning on 1, turning off -1
+   float transitionFactor{0.01f};
+   float transitionSpeed{0.04f};
 
    Grid(int width, int height);
 
@@ -37,10 +42,11 @@ struct Grid{
    void draw();
 };
 
-Grid::Grid(int width, int height): width(width), height(height){
+Grid::Grid(int width, int height): texture(textureStore.add("sprites/tile.png")), width(width), height(height){
 
-   // add tile texture to store for easier unloading
-   textureStore.add(texture);
+   // set size
+   source.width = static_cast<float>(texture.width);
+   source.height = static_cast<float>(texture.height);
 
    // create grid with initial positions
    Vector3 temp;
@@ -90,6 +96,12 @@ void Grid::draw(){
       DrawText(TextFormat("Wave length:   %01.04f", wavelength), 0,25,20, BLACK);
       DrawText(TextFormat("Wave Speed:   %i", speed), 0,50,20, BLACK);
    }
+
+   // check transition to wave
+   if (transitioning){
+      transitionFactor += transitionSpeed*transitioning;
+      if (transitionFactor<=0.0f || transitionFactor >=1.0f){ transitioning = false; }
+   }
 }
 
 void Grid::getInput(){
@@ -108,7 +120,7 @@ void Grid::getInput(){
 
 float Grid::waveOffset(const Rectangle& tile){
 
-   return waveState ? amplitude*std::sin((dt + tile.x + tile.y)*wavelength) : 0;
+   return transitionFactor>0.0f ? transitionFactor*amplitude*std::sin((dt + tile.x + tile.y)*wavelength) : 0.0f;
 
 }
 
