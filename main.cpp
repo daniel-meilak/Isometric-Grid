@@ -26,7 +26,7 @@ int main(){
    // menu and buttons
    Menu menu(grid);
 
-   std::pair<Grid,Menu> input = std::make_pair(grid,menu);
+   std::pair<Grid*,Menu*> input = std::make_pair(&grid,&menu);
    void* data = &input;
 
    // game loop
@@ -44,9 +44,9 @@ int main(){
 void UpdateDrawFrame(void* data){
 
    // unravel data
-   std::pair<Grid,Menu>* input = static_cast<std::pair<Grid,Menu>*>(data);
-   Grid& grid = input->first;
-   Menu& menu = input->second;
+   std::pair<Grid*,Menu*>* input = static_cast<std::pair<Grid*,Menu*>*>(data);
+   Grid* grid = input->first;
+   Menu* menu = input->second;
 
    // draw scene
    BeginDrawing();
@@ -56,10 +56,10 @@ void UpdateDrawFrame(void* data){
    Vector2 mousePos = GetMousePosition();
 
    // draw grid to screen
-   grid.draw(mousePos);
+   grid->draw(mousePos);
 
    // display menu
-   menu.display(mousePos);
+   menu->display(mousePos);
 
    EndDrawing();
 

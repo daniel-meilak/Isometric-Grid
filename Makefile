@@ -55,7 +55,8 @@ BUILD_WEB_ASYNCIFY    ?= FALSE
 BUILD_WEB_SHELL       ?= shell.html
 BUILD_WEB_HEAP_SIZE   ?= 134217728
 BUILD_WEB_RESOURCES   ?= TRUE
-BUILD_WEB_RESOURCES_PATH  ?= sprites
+SPRITES_PATH          ?= sprites
+FONTS_PATH            ?= fonts
 
 # Use cross-compiler for PLATFORM_RPI
 ifeq ($(PLATFORM),PLATFORM_RPI)
@@ -189,7 +190,7 @@ endif
 #  -Wno-missing-braces  ignore invalid warning (GCC bug 53119)
 #  -Wno-unused-value    ignore unused return values of some functions (i.e. fread())
 #  -D_DEFAULT_SOURCE    use with -std=c99 on Linux and PLATFORM_WEB, required for timespec
-CFLAGS = -std=c++17 -Wall -Wno-missing-braces -Wunused-result -D_DEFAULT_SOURCE
+CFLAGS = -std=c++20 -Wall -Wno-missing-braces -Wunused-result -D_DEFAULT_SOURCE
 
 ifeq ($(BUILD_MODE),DEBUG)
     CFLAGS += -g -D_DEBUG
@@ -292,7 +293,7 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
     
     # Add resources building if required
     ifeq ($(BUILD_WEB_RESOURCES),TRUE)
-        LDFLAGS += --preload-file $(BUILD_WEB_RESOURCES_PATH)
+        LDFLAGS += --preload-file $(SPRITES_PATH) --preload-file $(FONTS_PATH) 
     endif
     
     # Add debug mode flags if required
