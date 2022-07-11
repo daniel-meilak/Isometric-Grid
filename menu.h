@@ -13,9 +13,12 @@
 #include"grid.h"
 #include"storage.h"
 
+using Param = std::variant<bool*,int*,float*>;
 
+// Section of Menu, contains one or more buttons
 struct Section {
 
+   // reference to font in fontStorage
    Font& font;
 
    // Top, middle or bottom of menu (affects texture)
@@ -29,66 +32,71 @@ struct Section {
    Rectangle source{0.0f, 0.0f, texture.width/3.0f, texture.height/3.0f};
    Rectangle bounds{source};
 
-   // message
+   // Static message
    std::string message;
 
-   // seciton property
-   using variant = std::variant<bool*,int*,float*>;
-   variant gridProperty;
+   // Variable grid property, displayed next to message
+   Param gridProperty;
    std::string propertyMessage{};
 
-   // message position (w.r.t menu postion)
+   // message position (w.r.t section origin)
    Vector2 offset;
 
-   // size multiplier
+   // Message stle
    float fontSize;
-
-   // spacing
    float spacing;
 
    // associated buttons
    std::vector<Button> buttons;
 
-   Section(Font& font, sectionType type, bool hasTexture, float x, float y, std::string message, variant gridProperty, float fontSize, float spacing, float scale):
-      font(font), type(type), hasTexture(hasTexture), message(message), gridProperty(gridProperty), fontSize(fontSize*scale), spacing(spacing*scale){
-         
-         source.y = static_cast<int>(type)*source.height;
-         bounds.x = x;
-         bounds.y = y;
-         bounds.width  *= scale;
-         bounds.height *= scale;
-   };
+   Section(Font& font, sectionType type, bool hasTexture, float x, float y, std::string message, Param gridProperty, float fontSize, float spacing, float sizeMulti);
 
-   void setMessage(){
-      if (std::holds_alternative<bool*>(gridProperty)){ propertyMessage = *std::get<bool*>(gridProperty) ? "On" : "Off"; }
-      else if (std::holds_alternative<int*>(gridProperty)){ propertyMessage = std::to_string(*std::get<int*>(gridProperty)); }
-      else { propertyMessage = std::to_string(*std::get<float*>(gridProperty)); }
-   }
+   void setMessage();
 
-   void display(const Vector2& mousePos){
-
-      // update property message
-      setMessage();
-
-      // display all associated buttons
-      for (auto& button : buttons){
-         button.display(mousePos);
-      }
-
-      // only display background if required
-      if (hasTexture){ DrawTexturePro(texture, source, bounds, {}, 0.0f, WHITE); }
-
-      // display text
-      std::string fullMessage = message + propertyMessage;
-      
-      // offset to centre text
-      Vector2 textSize = MeasureTextEx(font, fullMessage.c_str(), this->fontSize, this->spacing);
-      offset = {bounds.width/2.0f - textSize.x/2.0f, bounds.height/2.0f - textSize.y/2.0f};
-
-      DrawTextEx(font, fullMessage.c_str(), {bounds.x+offset.x, bounds.y+offset.y}, fontSize, spacing, WHITE);
-   }
+   void display(const Vector2& mousePos);
 };
 
+Section::Section(Font& font, sectionType type, bool hasTexture, float x, float y, std::string message, Param gridProperty, float fontSize, float spacing, float sizeMulti):
+   font(font), type(type), hasTexture(hasTexture), message(message), gridProperty(gridProperty), fontSize(fontSize*sizeMulti), spacing(spacing*sizeMulti){
+      
+      source.y = static_cast<int>(type)*source.height;
+      bounds.x = x;
+      bounds.y = y;
+      bounds.width  *= sizeMulti;
+      bounds.height *= sizeMulti;
+};
+
+void Section::setMessage(){
+   if (std::holds_alternative<bool*>(gridProperty)){ propertyMessage = *std::get<bool*>(gridProperty) ? "On" : "Off"; }
+   else if (std::holds_alternative<int*>(gridProperty)){ propertyMessage = std::to_string(*std::get<int*>(gridProperty)); }
+   else { propertyMessage = std::to_string(*std::get<float*>(gridProperty)); }
+}
+
+void Section::display(const Vector2& mousePos){
+
+   // update property message
+   setMessage();
+
+   // only display background if required
+   if (hasTexture){ DrawTexturePro(texture, source, bounds, {}, 0.0f, WHITE); }
+
+   // display all associated buttons
+   for (auto& button : buttons){
+      button.display(mousePos);
+   }
+
+   // display text
+   std::string fullMessage = message + propertyMessage;
+   
+   // offset to centre text
+   Vector2 textSize = MeasureTextEx(font, fullMessage.c_str(), this->fontSize, this->spacing);
+   offset = {bounds.width/2.0f - textSize.x/2.0f, bounds.height/2.0f - textSize.y/2.0f};
+
+   DrawTextEx(font, fullMessage.c_str(), {bounds.x+offset.x, bounds.y+offset.y}, fontSize, spacing, WHITE);
+}
+
+
+// Menu of sections
 struct Menu {
 
    // alpha_beta font by Brian Kent (AEnigma)
@@ -109,33 +117,61 @@ struct Menu {
    // menu size multiplier
    float sizeMulti{3.0f};
 
-   void display(const Vector2& mousePos);
+   Menu(Grid& grid);
 
-   Menu(Grid& grid): grid(grid){
+   // add a simple section to menu, which acts as one large button
+   void addSectionBasic(sectionType type, std::string message, Param param, float fontSize, float spacing, std::function<void(Grid&)> func);
 
-      // wave on/off
-      Section waveOnOff{font, sectionType::top, false, x, height, "Wave: ", &grid.waveState, 0.6f*font.baseSize, 1.0f, sizeMulti};
-      Button waveButton{"sprites/menu.png", sectionType::top, x, height, sizeMulti, std::bind(waveSwitch, std::ref(grid))};
-      waveOnOff.buttons.push_back(std::move(waveButton));
-      sections.push_back(std::move(waveOnOff));
-      height += waveOnOff.bounds.height;
+   // add a section with inc. and decr. buttons
+   void addSectionRange(sectionType type, std::string message, Param param, float fontSize, float spacing, std::function<void(Grid&)> incr, std::function<void(Grid&)> decr);
 
-      // sections.push_back(Section(font, sectionType::top, false, x, height, "Wave: off", 0.6f*font.baseSize, 1.0f, sizeMulti, height));
-      // buttons.push_back(Button("sprites/menu.png",sectionType::top, x, height, sizeMulti));
-      
-      sections.push_back(Section(font, sectionType::mid,  true, x, height, "Amplitude: ", &grid.amplitude, 0.6f*font.baseSize, 1.0f, sizeMulti));
-      height += waveOnOff.bounds.height;
-
-      sections.push_back(Section(font, sectionType::bot,  true, x, height, "Amplitude: ", &grid.amplitude, 0.6f*font.baseSize, 1.0f, sizeMulti));
-   }   
+   void display(const Vector2& mousePos){
+      for (auto& section : sections){ section.display(mousePos); }
+   };
 
 };
 
-void Menu::display(const Vector2& mousePos){
+Menu::Menu(Grid& grid): grid(grid){
 
-   for (auto& section : sections){ section.display(mousePos); }
+   // wave on/off
+   addSectionBasic(sectionType::top, "Wave: ", &grid.waveState, 0.6f*font.baseSize, 1.0f, waveSwitch);
+
+   // speed
+   addSectionRange(sectionType::mid, "Speed: ", &grid.speed, 0.6*font.baseSize, 1.0f, speedUp, speedDown);
+
+   // amplitude
+   addSectionRange(sectionType::bot, "Amplitude: ", &grid.amplitude, 0.6*font.baseSize, 1.0f, amplitudeUp, amplitudeDown);
+
 
 }
 
+// add a simple section to menu, which acts as one large button
+void Menu::addSectionBasic(sectionType type, std::string message, Param param, float fontSize, float spacing, std::function<void(Grid&)> func){
 
+   // create section and button
+   Section section{font, type, false, x, height, message, param, fontSize, spacing, sizeMulti};
+   Button button{"sprites/menu.png", type, x, height, 3.0f, 3.0f, sizeMulti, std::bind(func, std::ref(grid))};
 
+   // increase menu height by section height
+   height += section.bounds.height;
+
+   // link together and add to menu
+   section.buttons.push_back(std::move(button));
+   sections.push_back(std::move(section));
+}
+
+void Menu::addSectionRange(sectionType type, std::string message, Param param, float fontSize, float spacing, std::function<void(Grid&)> incr, std::function<void(Grid&)> decr){
+
+   // create section and buttons
+   Section section{font, type, true, x, height, message, param, fontSize, spacing, sizeMulti};
+   Button  left{"sprites/left-arrow.png" , sectionType::top, x + (3*sizeMulti) , height + (5*sizeMulti), 3.0f, 1.0f, sizeMulti, std::bind(decr, std::ref(grid))};
+   Button right{"sprites/right-arrow.png", sectionType::top, x + (82*sizeMulti), height + (5*sizeMulti), 3.0f, 1.0f, sizeMulti, std::bind(incr, std::ref(grid))};
+
+   // increase menu height by section height
+   height += section.bounds.height;
+
+   // link together and add to menu
+   section.buttons.push_back(std::move(left));
+   section.buttons.push_back(std::move(right));
+   sections.push_back(std::move(section));
+}

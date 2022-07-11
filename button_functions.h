@@ -11,7 +11,7 @@ void amplitudeUp(Grid& grid){
    grid.amplitude++;
 }
 
-void ampitudeDown(Grid& grid){
+void amplitudeDown(Grid& grid){
    grid.amplitude--;
 }
 
@@ -21,4 +21,12 @@ void wavelengthUp(Grid& grid){
 
 void wavelengthDown(Grid& grid){
    grid.wavelength -= 0.00001;
+}
+
+void speedUp(Grid& grid){
+   grid.speed++;
+}
+
+void speedDown(Grid& grid){
+   grid.speed--;
 }

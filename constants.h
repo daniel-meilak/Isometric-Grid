@@ -6,8 +6,8 @@ constexpr int tileSize{32};
 constexpr int scale = scaling*tileSize;
 
 // Grid size
-constexpr int gridWidth{12};
-constexpr int gridHeight{12};
+constexpr int gridWidth{8};
+constexpr int gridHeight{8};
 
 // Textures
 constexpr int maxTextures{10};

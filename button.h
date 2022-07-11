@@ -30,12 +30,12 @@ struct Button {
    // button held duration
    int heldDuration{0};
 
-   Button(const char* filename, sectionType type, float x, float y, float scale, std::function<void()> func):
+   Button(const char* filename, sectionType type, float x, float y, float x_div, float y_div, float scale, std::function<void()> func):
       texture(textureStore.add(filename)), type(type), func(func){
 
          // set source
-         source.width  = texture.width/3.0f;
-         source.height = texture.height/3.0f;
+         source.width  = texture.width/x_div;
+         source.height = texture.height/y_div;
          source.y = source.height*static_cast<int>(type);
 
          // set bounds

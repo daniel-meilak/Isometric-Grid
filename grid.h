@@ -92,10 +92,11 @@ void Grid::getKeyboardInput(){
       if (IsKeyDown(KEY_DOWN  )){ amplitude--;          }
       if (IsKeyDown(KEY_LEFT  )){ wavelength += 0.00001;}
       if (IsKeyDown(KEY_RIGHT )){ wavelength -= 0.00001;}
-      if (IsKeyDown(KEY_SPACE )){ dt += speed;          }
+      //if (IsKeyDown(KEY_SPACE )){ dt += speed;          }
 
       if (IsKeyPressed(KEY_PERIOD)){ speed++;     }
-      if (IsKeyPressed(KEY_COMMA )){ speed--;     }      
+      if (IsKeyPressed(KEY_COMMA )){ speed--;     }
+      dt += speed;      
    }
 }
 
