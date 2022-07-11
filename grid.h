@@ -26,12 +26,12 @@ struct Grid{
    bool waveState{false};
    int amplitude{50};
    int speed{5};
-   float wavelength{0.01};
-   float dt{0};
+   float wavelength{1000.0f};
+   float dt{0.0f};
 
    // transition into/out of wave
    int transitioning{0}; // turning on 1, turning off -1
-   float transitionFactor{0.01f};
+   float transitionFactor{0.0f};
    float transitionSpeed{0.04f};
 
    Grid(int width, int height);
@@ -80,22 +80,23 @@ void Grid::mouseHover(const Vector2& mousePos){
    else {lastHovered = -1;}
 
    // debug info
-   DrawText(TextFormat("Mouse Position: %i, %i", static_cast<int>(mousePos.x), static_cast<int>(mousePos.y)), 0,0,20, BLACK);
-   DrawText(TextFormat("Mouse Coord:   %i, %i", static_cast<int>(onGrid.x/scale), static_cast<int>(onGrid.y/scale)), 0,25,20, BLACK);
-   DrawText(TextFormat("Index:   %i", lastHovered), 0,50,20, BLACK);
+   if (debug){
+      DrawText(TextFormat("Mouse Position: %i, %i", static_cast<int>(mousePos.x), static_cast<int>(mousePos.y)), 0,0,20, BLACK);
+      DrawText(TextFormat("Mouse Coord:   %i, %i", static_cast<int>(onGrid.x/scale), static_cast<int>(onGrid.y/scale)), 0,25,20, BLACK);
+      DrawText(TextFormat("Index:   %i", lastHovered), 0,50,20, BLACK);
+   }
 }
 
 void Grid::getKeyboardInput(){
    
    if (waveState){
-      if (IsKeyDown(KEY_UP    )){ amplitude++;          }
-      if (IsKeyDown(KEY_DOWN  )){ amplitude--;          }
-      if (IsKeyDown(KEY_LEFT  )){ wavelength += 0.00001;}
-      if (IsKeyDown(KEY_RIGHT )){ wavelength -= 0.00001;}
-      //if (IsKeyDown(KEY_SPACE )){ dt += speed;          }
+      if (IsKeyDown(KEY_UP    )){ amplitude++;  }
+      if (IsKeyDown(KEY_DOWN  )){ amplitude--;  }
+      if (IsKeyDown(KEY_LEFT  )){ wavelength++; }
+      if (IsKeyDown(KEY_RIGHT )){ wavelength--; }
 
-      if (IsKeyPressed(KEY_PERIOD)){ speed++;     }
-      if (IsKeyPressed(KEY_COMMA )){ speed--;     }
+      if (IsKeyPressed(KEY_PERIOD)){ speed++;   }
+      if (IsKeyPressed(KEY_COMMA )){ speed--;   }
       dt += speed;      
    }
 }
@@ -113,7 +114,7 @@ void Grid::draw(const Vector2& mousePos){
    }
 
    // wave state info
-   if (waveState){
+   if (debug && waveState){
       DrawText(TextFormat("Wave Amplitude:   %i", amplitude), 0,0,20, BLACK);
       DrawText(TextFormat("Wave length:   %01.04f", wavelength), 0,25,20, BLACK);
       DrawText(TextFormat("Wave Speed:   %i", speed), 0,50,20, BLACK);
@@ -122,13 +123,16 @@ void Grid::draw(const Vector2& mousePos){
    // check transition to wave
    if (transitioning){
       transitionFactor += transitionSpeed*transitioning;
-      if (transitionFactor<=0.0f || transitionFactor >=1.0f){ transitioning = false; }
+      if (transitionFactor<=0.0f || transitionFactor >=1.0f){
+         transitioning = false;
+         std::round(transitionFactor);
+      }
    }
 }
 
 float Grid::waveOffset(const Rectangle& tile){
 
-   return transitionFactor>0.0f ? transitionFactor*amplitude*std::sin((dt + tile.x + tile.y)*wavelength) : 0.0f;
+   return transitionFactor>0.0f ? transitionFactor*amplitude*std::sin((dt + tile.x + tile.y)*wavelength/100'000.0f) : 0.0f;
 
 }
 

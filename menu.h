@@ -54,6 +54,8 @@ struct Section {
    void setMessage();
 
    void display(const Vector2& mousePos);
+
+   void move(float xDiff, float yDiff);
 };
 
 Section::Section(Font& font, sectionType type, bool hasTexture, float x, float y, std::string message, Param gridProperty, float fontSize, float spacing, float sizeMulti):
@@ -95,6 +97,19 @@ void Section::display(const Vector2& mousePos){
    DrawTextEx(font, fullMessage.c_str(), {bounds.x+offset.x, bounds.y+offset.y}, fontSize, spacing, WHITE);
 }
 
+void Section::move(float xDiff, float yDiff){
+
+   // move section
+   bounds.x += xDiff;
+   bounds.y += yDiff;
+
+   // move buttons
+   for (auto& button : buttons){
+      button.bounds.x += xDiff;
+      button.bounds.y += yDiff;
+   }
+}
+
 
 // Menu of sections
 struct Menu {
@@ -108,11 +123,12 @@ struct Menu {
    std::vector<Section> sections;
    std::vector<Button> buttons;
 
-   // menu x-pos
+   // menu origin
    float x{32.0f};
+   float y{0.0f};
 
    // menu height (increases on adding sections)
-   float height{windowSize[1]/4.0f};
+   float height{0.0f};
 
    // menu size multiplier
    float sizeMulti{3.0f};
@@ -124,6 +140,9 @@ struct Menu {
 
    // add a section with inc. and decr. buttons
    void addSectionRange(sectionType type, std::string message, Param param, float fontSize, float spacing, std::function<void(Grid&)> incr, std::function<void(Grid&)> decr);
+
+   // move menu position
+   void move(float newX, float newY);
 
    void display(const Vector2& mousePos){
       for (auto& section : sections){ section.display(mousePos); }
@@ -142,6 +161,8 @@ Menu::Menu(Grid& grid): grid(grid){
    // amplitude
    addSectionRange(sectionType::bot, "Amplitude: ", &grid.amplitude, 0.6*font.baseSize, 1.0f, amplitudeUp, amplitudeDown);
 
+   // centre menu
+   move(x, windowSize[1]/2.0f - height/2.0f);
 
 }
 
@@ -174,4 +195,18 @@ void Menu::addSectionRange(sectionType type, std::string message, Param param, f
    section.buttons.push_back(std::move(left));
    section.buttons.push_back(std::move(right));
    sections.push_back(std::move(section));
+}
+
+void Menu::move(float newX, float newY){
+
+   float xDiff=newX-x, yDiff=newY-y;
+
+   // move menu
+   x = newX;
+   y = newY;
+
+   // move sections
+   for (auto& section : sections){
+      section.move(xDiff, yDiff);
+   }
 }
