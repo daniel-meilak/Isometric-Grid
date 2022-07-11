@@ -6,11 +6,17 @@ constexpr int tileSize{32};
 constexpr int scale = scaling*tileSize;
 
 // Grid size
-constexpr int gridWidth  = 9;
-constexpr int gridHeight = 9;
+constexpr int gridWidth{8};
+constexpr int gridHeight{8};
+
+// Textures
+constexpr int maxTextures{10};
 
 // window variables
 constexpr std::array<int,2> windowSize = {2 * scale*gridWidth, 2 * scale*gridHeight/2 };
+
+// enum for buttons and menu
+enum sectionType {top=0, mid=1, bot=2};
 
 // matrix to transform into isometric + centre grid 
 constexpr Matrix toIso{
@@ -27,3 +33,6 @@ constexpr Matrix toGrid{
    0.0f , 0.0f,                                        1.0f, 0.0f,
    0.0f , 0.0f,                                        0.0f, 1.0f
 };
+
+// debug output
+constexpr bool debug{false};

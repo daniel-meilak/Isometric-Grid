@@ -8,10 +8,10 @@
 #include"raymath.h"
 
 #include"constants.h"
-#include"textures.h"
-#include"wave.h"
+#include"storage.h"
+#include"button.h"
 #include"grid.h"
-
+#include"menu.h"
 
 // forward function declarations
 void UpdateDrawFrame(void* data);
@@ -23,16 +23,18 @@ int main(){
    // initialize grid
    Grid grid(gridWidth,gridHeight);
 
-   // initialize on-screen controlls
-   Button button;
+   // menu and buttons
+   Menu menu(grid);
 
-   std::pair<Grid,Button> input = std::make_pair(grid,button);
+   std::pair<Grid,Menu> input = std::make_pair(grid,menu);
    void* data = &input;
 
    // game loop
    emscripten_set_main_loop_arg(UpdateDrawFrame,data,0,1);   
 
+   // unload all fonts and textures from GPU
    textureStore.unloadAll();
+   fontStore.unloadAll();
 
    CloseWindow();
 
@@ -42,9 +44,9 @@ int main(){
 void UpdateDrawFrame(void* data){
 
    // unravel data
-   std::pair<Grid,Button>* input = static_cast<std::pair<Grid,Button>*>(data);
+   std::pair<Grid,Menu>* input = static_cast<std::pair<Grid,Menu>*>(data);
    Grid& grid = input->first;
-   Button& button = input->second;
+   Menu& menu = input->second;
 
    // draw scene
    BeginDrawing();
@@ -53,17 +55,11 @@ void UpdateDrawFrame(void* data){
    // get current mouse position
    Vector2 mousePos = GetMousePosition();
 
-   // check for and animate mouse hover over tile
-   grid.mouseHover(mousePos);
-
-   // get user input (wave controls)
-   grid.getInput();
-
    // draw grid to screen
-   grid.draw();
+   grid.draw(mousePos);
 
-   // draw button
-   button.display(grid, mousePos);
+   // display menu
+   menu.display(mousePos);
 
    EndDrawing();
 
