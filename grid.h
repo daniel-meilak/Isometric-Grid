@@ -6,7 +6,7 @@
 #include"raymath.h"
 
 #include"constants.h"
-#include"textures.h"
+#include"storage.h"
 #include"button.h"
 
 struct Grid{
@@ -38,8 +38,8 @@ struct Grid{
 
    void mouseHover(const Vector2& mousePos);
    float waveOffset(const Rectangle& tile);
-   void getInput();
-   void draw();
+   void getKeyboardInput();
+   void draw(const Vector2& mousePos);
 };
 
 Grid::Grid(int width, int height): texture(textureStore.add("sprites/tile.png")), width(width), height(height){
@@ -80,12 +80,33 @@ void Grid::mouseHover(const Vector2& mousePos){
    else {lastHovered = -1;}
 
    // debug info
-   DrawText(TextFormat("Mouse Coord:   %i, %i", static_cast<int>(onGrid.x/scale), (static_cast<int>(onGrid.y/scale))), 0,0,20, BLACK);
-   DrawText(TextFormat("Index:   %i", lastHovered), 0,25,20, BLACK);
+   DrawText(TextFormat("Mouse Position: %i, %i", static_cast<int>(mousePos.x), static_cast<int>(mousePos.y)), 0,0,20, BLACK);
+   DrawText(TextFormat("Mouse Coord:   %i, %i", static_cast<int>(onGrid.x/scale), static_cast<int>(onGrid.y/scale)), 0,25,20, BLACK);
+   DrawText(TextFormat("Index:   %i", lastHovered), 0,50,20, BLACK);
 }
 
-void Grid::draw(){
+void Grid::getKeyboardInput(){
+   
+   if (waveState){
+      if (IsKeyDown(KEY_UP    )){ amplitude++;          }
+      if (IsKeyDown(KEY_DOWN  )){ amplitude--;          }
+      if (IsKeyDown(KEY_LEFT  )){ wavelength += 0.00001;}
+      if (IsKeyDown(KEY_RIGHT )){ wavelength -= 0.00001;}
+      if (IsKeyDown(KEY_SPACE )){ dt += speed;          }
 
+      if (IsKeyPressed(KEY_PERIOD)){ speed++;     }
+      if (IsKeyPressed(KEY_COMMA )){ speed--;     }      
+   }
+}
+
+void Grid::draw(const Vector2& mousePos){
+
+   // raise tile on mouse hover
+   mouseHover(mousePos);
+
+   getKeyboardInput();
+
+   // draw tiles
    for (const auto& tile : tiles){
       DrawTexturePro(texture, source, {tile.x, tile.y+waveOffset(tile), tile.width, tile.height}, {}, 0.0f, WHITE);
    }
@@ -101,20 +122,6 @@ void Grid::draw(){
    if (transitioning){
       transitionFactor += transitionSpeed*transitioning;
       if (transitionFactor<=0.0f || transitionFactor >=1.0f){ transitioning = false; }
-   }
-}
-
-void Grid::getInput(){
-   
-   if (waveState){
-      if (IsKeyDown(KEY_UP    )){ amplitude++;          }
-      if (IsKeyDown(KEY_DOWN  )){ amplitude--;          }
-      if (IsKeyDown(KEY_LEFT  )){ wavelength += 0.00001;}
-      if (IsKeyDown(KEY_RIGHT )){ wavelength -= 0.00001;}
-      if (IsKeyDown(KEY_SPACE )){ dt += speed;          }
-
-      if (IsKeyPressed(KEY_PERIOD)){ speed++;     }
-      if (IsKeyPressed(KEY_COMMA )){ speed--;     }      
    }
 }
 

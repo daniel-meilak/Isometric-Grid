@@ -6,9 +6,10 @@
 #include"raymath.h"
 
 #include"constants.h"
-#include"textures.h"
+#include"storage.h"
 #include"button.h"
 #include"grid.h"
+#include"menu.h"
 
 int main(){
 
@@ -19,8 +20,8 @@ int main(){
    // initialize grid
    Grid grid(gridWidth,gridHeight);
 
-   // initialize on-screen controlls
-   Button button;
+   // menu and buttons
+   Menu menu(grid);
 
    // game loop
    while (!WindowShouldClose()){
@@ -32,22 +33,18 @@ int main(){
       // get current mouse position
       Vector2 mousePos = GetMousePosition();
 
-      // check for and animate mouse hover over tile
-      grid.mouseHover(mousePos);
-
-      // get user input (wave controls)
-      grid.getInput();
-
       // draw grid to screen
-      grid.draw();
+      grid.draw(mousePos);
 
-      // draw button
-      button.display(grid, mousePos);
+      // display menu
+      menu.display(mousePos);
 
       EndDrawing();
    }
 
+   // unload all fonts and textures from GPU
    textureStore.unloadAll();
+   fontStore.unloadAll();
 
    CloseWindow();
 

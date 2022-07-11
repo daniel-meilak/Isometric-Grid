@@ -15,6 +15,9 @@ constexpr int maxTextures{10};
 // window variables
 constexpr std::array<int,2> windowSize = {2 * scale*gridWidth, 2 * scale*gridHeight/2 };
 
+// enum for buttons and menu
+enum sectionType {top=0, mid=1, bot=2};
+
 // matrix to transform into isometric + centre grid 
 constexpr Matrix toIso{
    0.5f , -0.5f, -scale/2.0f+windowSize[0]/2.0f, 0.0f,
