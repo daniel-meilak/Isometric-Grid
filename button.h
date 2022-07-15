@@ -25,13 +25,16 @@ struct Button {
    sectionType type;
 
    // buttion function on click
-   std::function<void()> func;
+   std::function<void(Grid&)> onClick;
+
+   // grid to run onClick on
+   Grid& grid;
 
    // button held duration
    int heldDuration{0};
 
-   Button(const char* filename, sectionType type, float x, float y, float x_div, float y_div, float scale, std::function<void()> func):
-      texture(textureStore.add(filename)), type(type), func(func){
+   Button(const char* filename, sectionType type, float x, float y, float x_div, float y_div, float scale, std::function<void(Grid&)> onClick, Grid& grid):
+      texture(textureStore.add(filename)), type(type), onClick(onClick), grid(grid){
 
          // set source
          source.width  = texture.width/x_div;
@@ -52,12 +55,12 @@ void Button::display(const Vector2& mousePos){
       if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) ){
          state = 2;
          heldDuration++;
-         if (heldDuration >= 15){ func(); }
+         if (heldDuration >= 15){ onClick(grid); }
       }
       else { state = 1; }
 
       if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
-         func();
+         onClick(grid);
          heldDuration = 0;
       }
    }

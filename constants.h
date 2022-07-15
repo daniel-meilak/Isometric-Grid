@@ -1,5 +1,8 @@
 #pragma once
 
+#include<variant>
+#include<array>
+
 // tile size and scale
 constexpr int scaling{3};
 constexpr int tileSize{32};
@@ -36,3 +39,5 @@ constexpr Matrix toGrid{
 
 // debug output
 constexpr bool debug{false};
+
+using Param = std::variant<bool*,int*,float*>;

@@ -40,6 +40,19 @@ struct Grid{
    float waveOffset(const Rectangle& tile);
    void getKeyboardInput();
    void draw(const Vector2& mousePos);
+
+   // button functions
+   void waveSwitch(){
+      transitioning = waveState ? -1 : 1;
+      waveState = !waveState;
+   }
+   void incAmplitude(){ amplitude++; }
+   void decAmplitude(){ amplitude--; }
+   void incWavelength(){ wavelength++; }
+   void decWavelength(){ wavelength--; }
+   void incSpeed(){ speed++; }
+   void decSpeed(){ speed--; }
+
 };
 
 Grid::Grid(int width, int height): texture(textureStore.add("sprites/tile.png")), width(width), height(height){
