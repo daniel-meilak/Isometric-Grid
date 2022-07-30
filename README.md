@@ -10,4 +10,4 @@ Inspired by [this](https://youtu.be/04oQ2jOUjkU) video by Jordan West
 - [raylib](https://www.raylib.com/)
 - [LibreSprite](https://libresprite.github.io/#!/)
 
-![screenshot](screenshot.png)
+![screenshot](images/screenshot.png)
