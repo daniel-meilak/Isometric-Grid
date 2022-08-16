@@ -3,7 +3,6 @@
 #include<utility>
 #include<vector>
 
-#include <emscripten/emscripten.h>
 #include"raylib.h"
 #include"raymath.h"
 
@@ -13,8 +12,16 @@
 #include"grid.h"
 #include"menu.h"
 
+#ifdef PLATFORM_WEB
+   #include <emscripten/emscripten.h>
+#endif
+
 // forward function declarations
-void UpdateDrawFrame(void* data);
+void UpdateDrawFrame();
+
+// global pointers
+Grid* gridPtr;
+Menu* menuPtr;
 
 int main(){
 
@@ -22,15 +29,24 @@ int main(){
 
    // initialize grid
    Grid grid(gridWidth,gridHeight);
+   gridPtr = &grid;
 
    // menu and buttons
    Menu menu(grid);
+   menuPtr = &menu;
 
    std::pair<Grid*,Menu*> input = std::make_pair(&grid,&menu);
    void* data = &input;
 
    // game loop
-   emscripten_set_main_loop_arg(UpdateDrawFrame,data,0,1);   
+   #ifdef PLATFORM_WEB
+      emscripten_set_main_loop(UpdateDrawFrame,0,1);   
+   #else
+      SetTargetFPS(60);
+      while(!WindowShouldClose()){
+         UpdateDrawFrame();
+      }
+   #endif
 
    // unload all fonts and textures from GPU
    textureStore.unloadAll();
@@ -41,12 +57,7 @@ int main(){
    return 0;
 }
 
-void UpdateDrawFrame(void* data){
-
-   // unravel data
-   std::pair<Grid*,Menu*>* input = static_cast<std::pair<Grid*,Menu*>*>(data);
-   Grid* grid = input->first;
-   Menu* menu = input->second;
+void UpdateDrawFrame(){
 
    // draw scene
    BeginDrawing();
@@ -56,10 +67,10 @@ void UpdateDrawFrame(void* data){
    Vector2 mousePos = GetMousePosition();
 
    // draw grid to screen
-   grid->draw(mousePos);
+   gridPtr->draw(mousePos);
 
    // display menu
-   menu->display(mousePos);
+   menuPtr->display(mousePos);
 
    EndDrawing();
 

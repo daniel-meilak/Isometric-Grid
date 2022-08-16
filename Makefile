@@ -26,14 +26,16 @@
 # Define required environment variables
 #------------------------------------------------------------------------------------------------
 # Define target platform: PLATFORM_DESKTOP, PLATFORM_RPI, PLATFORM_DRM, PLATFORM_ANDROID, PLATFORM_WEB
-PLATFORM              ?= PLATFORM_WEB
+PLATFORM              ?= PLATFORM_DESKTOP
 
 # Define project variables
-PROJECT_NAME          ?= game.html
+PROJECT_NAME          ?= game
 PROJECT_VERSION       ?= 1.0
 PROJECT_BUILD_PATH    ?= .
 
 RAYLIB_PATH           ?= C:\raylib\raylib
+
+COMPILER_PATH         ?= C:\raylib\mingw64\bin
 
 # Locations of raylib.h and libraylib.a/libraylib.so
 # NOTE: Those variables are only used for PLATFORM_OS: LINUX, BSD
@@ -55,8 +57,12 @@ BUILD_WEB_ASYNCIFY    ?= FALSE
 BUILD_WEB_SHELL       ?= shell.html
 BUILD_WEB_HEAP_SIZE   ?= 134217728
 BUILD_WEB_RESOURCES   ?= TRUE
-SPRITES_PATH          ?= sprites
 FONTS_PATH            ?= fonts
+SPRITES_PATH          ?= sprites
+
+# ifeq ($(PLATFORM),PLATFORM_WEB)
+#     PROJECT_NAME += .html
+# endif
 
 # Use cross-compiler for PLATFORM_RPI
 ifeq ($(PLATFORM),PLATFORM_RPI)
@@ -73,6 +79,7 @@ ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     # ifeq ($(UNAME),Msys) -> Windows
     ifeq ($(OS),Windows_NT)
         PLATFORM_OS = WINDOWS
+        export PATH := $(COMPILER_PATH):$(PATH)
     else
         UNAMEOS = $(shell uname)
         ifeq ($(UNAMEOS),Linux)
@@ -138,18 +145,18 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
     export PATH         = $(EMSDK_PATH);$(EMSCRIPTEN_PATH);$(CLANG_PATH);$(NODE_PATH);$(PYTHON_PATH):$$(PATH)
 endif
 
-# Define default C compiler: CC
+# Define default C++ compiler: CC
 #------------------------------------------------------------------------------------------------
-CC = gcc
+CC = g++
 
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     ifeq ($(PLATFORM_OS),OSX)
         # OSX default compiler
-        CC = clang
+        CC = clang++
     endif
     ifeq ($(PLATFORM_OS),BSD)
         # FreeBSD, OpenBSD, NetBSD, DragonFly default compiler
-        CC = clang
+        CC = clang++
     endif
 endif
 ifeq ($(PLATFORM),PLATFORM_RPI)
@@ -168,7 +175,7 @@ endif
 
 # Define default make program: MAKE
 #------------------------------------------------------------------------------------------------
-MAKE ?= make
+MAKE ?= mingw32-make
 
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     ifeq ($(PLATFORM_OS),WINDOWS)
@@ -190,7 +197,7 @@ endif
 #  -Wno-missing-braces  ignore invalid warning (GCC bug 53119)
 #  -Wno-unused-value    ignore unused return values of some functions (i.e. fread())
 #  -D_DEFAULT_SOURCE    use with -std=c99 on Linux and PLATFORM_WEB, required for timespec
-CFLAGS += -std=c++20 -D_DEFAULT_SOURCE -Wno-missing-braces 
+CFLAGS += -std=c++20 -D_DEFAULT_SOURCE -Wno-missing-braces
 
 # Warning flags
 # CFLAGS += -Wall -Wextra -Wpedantic -fdiagnostics-color=always 
@@ -212,6 +219,9 @@ endif
 # Additional flags for compiler (if desired)
 #CFLAGS += -Wextra -Wmissing-prototypes -Wstrict-prototypes
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
+
+    CFLAGS += -static-libgcc -static-libstdc++
+
     ifeq ($(PLATFORM_OS),LINUX)
         ifeq ($(RAYLIB_LIBTYPE),STATIC)
             CFLAGS += -D_DEFAULT_SOURCE
@@ -259,7 +269,7 @@ LDFLAGS = -L. -L$(RAYLIB_RELEASE_PATH) -L$(RAYLIB_PATH)/src
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     ifeq ($(PLATFORM_OS),WINDOWS)
         # NOTE: The resource .rc file contains windows executable icon and properties
-        LDFLAGS += $(RAYLIB_PATH)/src/raylib.rc.data
+        # LDFLAGS += $(RAYLIB_PATH)/src/raylib.rc.data
         # -Wl,--subsystem,windows hides the console window
         ifeq ($(BUILD_MODE), RELEASE)
             LDFLAGS += -Wl,--subsystem,windows
@@ -296,7 +306,8 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
     
     # Add resources building if required
     ifeq ($(BUILD_WEB_RESOURCES),TRUE)
-        LDFLAGS += --preload-file $(SPRITES_PATH) --preload-file $(FONTS_PATH) 
+        LDFLAGS += --preload-file $(FONTS_PATH)
+        LDFLAGS += --preload-file $(SPRITES_PATH)
     endif
     
     # Add debug mode flags if required
@@ -371,7 +382,8 @@ ifeq ($(PLATFORM),PLATFORM_DRM)
 endif
 ifeq ($(PLATFORM),PLATFORM_WEB)
     # Libraries for web (HTML5) compiling
-    LDLIBS = $(RAYLIB_RELEASE_PATH)/libraylib.a
+    #LDLIBS = $(RAYLIB_RELEASE_PATH)/web/libraylib.a
+    LDLIBS = -lraylibweb
 endif
 
 # Define source code object files required
