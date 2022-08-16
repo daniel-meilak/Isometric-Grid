@@ -1,6 +1,11 @@
 *.exe
 *.dsym
 main
-*.dll
 .vscode/*
 main.code-workspace
+*.dll
+
+*.html
+*.data
+*.js
+*.wasm
